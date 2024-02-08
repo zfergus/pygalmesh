@@ -79,8 +79,8 @@ generate_from_inr(
   C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(
       cgal_domain,
       criteria,
-      lloyd ? CGAL::parameters::lloyd() : CGAL::parameters::no_lloyd(),
-      odt ? CGAL::parameters::odt() : CGAL::parameters::no_odt(),
+      lloyd ? CGAL::parameters::lloyd(CGAL::parameters::default_values()) : CGAL::parameters::no_lloyd(),
+      odt ? CGAL::parameters::odt(CGAL::parameters::default_values()) : CGAL::parameters::no_odt(),
       perturb ? CGAL::parameters::perturb() : CGAL::parameters::no_perturb(),
       exude ?
         CGAL::parameters::exude(
@@ -154,8 +154,8 @@ generate_from_inr_with_subdomain_sizing(
   C3t3 c3t3 = CGAL::make_mesh_3<C3t3>(
       cgal_domain,
       criteria,
-      lloyd ? CGAL::parameters::lloyd() : CGAL::parameters::no_lloyd(),
-      odt ? CGAL::parameters::odt() : CGAL::parameters::no_odt(),
+      lloyd ? CGAL::parameters::lloyd(CGAL::parameters::default_values()) : CGAL::parameters::no_lloyd(),
+      odt ? CGAL::parameters::odt(CGAL::parameters::default_values()) : CGAL::parameters::no_odt(),
       perturb ? CGAL::parameters::perturb() : CGAL::parameters::no_perturb(),
       exude ?
         CGAL::parameters::exude(
