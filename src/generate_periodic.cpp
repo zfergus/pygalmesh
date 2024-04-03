@@ -104,7 +104,7 @@ generate_periodic_mesh(
   C3t3 c3t3 = CGAL::make_periodic_3_mesh_3<C3t3>(
       cgal_domain,
       criteria,
-      manifold ? CGAL::parameters::manifold() : CGAL::parameters::no_manifold(),
+      manifold ? CGAL::parameters::manifold() : CGAL::parameters::non_manifold(),
       lloyd ? CGAL::parameters::lloyd(CGAL::parameters::default_values()) : CGAL::parameters::no_lloyd(),
       odt ? CGAL::parameters::odt(CGAL::parameters::default_values()) : CGAL::parameters::no_odt(),
       perturb ? CGAL::parameters::perturb() : CGAL::parameters::no_perturb(),
