@@ -300,6 +300,7 @@ PYBIND11_MODULE(_pygalmesh, m) {
         py::arg("odt") = false,
         py::arg("perturb") = true,
         py::arg("exude") = true,
+        py::arg("manifold") = false,
         py::arg("max_edge_size_at_feature_edges") = 0.0,
         py::arg("min_facet_angle") = 0.0,
         py::arg("max_radius_surface_delaunay_ball") = 0.0,
