@@ -33,6 +33,7 @@ def generate_mesh(
     domain,
     extra_feature_edges: list | None = None,
     bounding_sphere_radius: float = 0.0,
+    bounding_cuboid: list[float] | None = None,
     lloyd: bool = False,
     odt: bool = False,
     perturb: bool = True,
@@ -92,7 +93,9 @@ def generate_mesh(
         max_radius_surface_delaunay_ball_value,
         max_radius_surface_delaunay_ball_field,
     ) = _select(max_radius_surface_delaunay_ball)
-    max_facet_distance_value, max_facet_distance_field = _select(max_facet_distance)
+    max_facet_distance_value, max_facet_distance_field = _select(
+        max_facet_distance
+    )
 
     # if feature_edges:
     #     if max_edge_size_at_feature_edges == 0.0:
@@ -104,11 +107,8 @@ def generate_mesh(
     #         "No feature edges. The max_edge_size_at_feature_edges argument has no effect."
     #     )
 
-    _generate_mesh(
-        domain,
-        outfile,
+    kwargs = dict(
         extra_feature_edges=extra_feature_edges,
-        bounding_sphere_radius=bounding_sphere_radius,
         lloyd=lloyd,
         odt=odt,
         perturb=perturb,
@@ -128,6 +128,13 @@ def generate_mesh(
         verbose=verbose,
         seed=seed,
     )
+
+    if bounding_cuboid is not None:
+        kwargs["bounding_cuboid"] = bounding_cuboid
+    else:
+        kwargs["bounding_sphere_radius"] = bounding_sphere_radius
+
+    _generate_mesh(domain, outfile, **kwargs)
 
     mesh = meshio.read(outfile)
     os.remove(outfile)

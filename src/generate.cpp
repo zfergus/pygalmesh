@@ -28,6 +28,8 @@ typedef Mesh_criteria::Edge_criteria Edge_criteria;
 typedef Mesh_criteria::Facet_criteria Facet_criteria;
 typedef Mesh_criteria::Cell_criteria Cell_criteria;
 
+namespace {
+
 // translate vector<vector<array<double, 3>> to list<vector<Point_3>>
 std::list<std::vector<K::Point_3>>
 translate_feature_edges(
@@ -45,12 +47,13 @@ translate_feature_edges(
   return polylines;
 }
 
+template <typename T>
 void
 generate_mesh(
     const std::shared_ptr<pygalmesh::DomainBase> & domain,
     const std::string & outfile,
+    const T& domain_bounds,
     const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges,
-    const double bounding_sphere_radius,
     const bool lloyd,
     const bool odt,
     const bool perturb,
@@ -81,20 +84,13 @@ generate_mesh(
 {
   CGAL::get_default_random() = CGAL::Random(seed);
 
-  const double bounding_sphere_radius2 = bounding_sphere_radius > 0 ?
-    bounding_sphere_radius*bounding_sphere_radius :
-    // some wiggle room
-    1.01 * domain->get_bounding_sphere_squared_radius();
-
   // wrap domain
   const auto d = [&](K::Point_3 p) {
     return domain->eval({p.x(), p.y(), p.z()});
   };
 
-  Mesh_domain cgal_domain = Mesh_domain::create_implicit_mesh_domain(
-       d,
-       K::Sphere_3(CGAL::ORIGIN, bounding_sphere_radius2)
-       );
+  Mesh_domain cgal_domain =
+    Mesh_domain::create_implicit_mesh_domain(d, domain_bounds);
 
   // cgal_domain.detect_features();
 
@@ -186,6 +182,122 @@ generate_mesh(
   medit_file.close();
 
   return;
+}
+
+}
+
+void
+generate_mesh(
+    const std::shared_ptr<pygalmesh::DomainBase> & domain,
+    const std::string & outfile,
+    const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges,
+    const double bounding_sphere_radius,
+    const bool lloyd,
+    const bool odt,
+    const bool perturb,
+    const bool exude,
+    //
+    const double max_edge_size_at_feature_edges_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_edge_size_at_feature_edges_field,
+    //
+    const double min_facet_angle,
+    //
+    const double max_radius_surface_delaunay_ball_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_radius_surface_delaunay_ball_field,
+    //
+    const double max_facet_distance_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_facet_distance_field,
+    //
+    const double max_circumradius_edge_ratio,
+    //
+    const double max_cell_circumradius_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_cell_circumradius_field,
+    //
+    const double exude_time_limit,
+    const double exude_sliver_bound,
+    //
+    const bool verbose,
+    const int seed
+    )
+{
+  const double bounding_sphere_radius2 = bounding_sphere_radius > 0 ?
+    bounding_sphere_radius*bounding_sphere_radius :
+    // some wiggle room
+    1.01 * domain->get_bounding_sphere_squared_radius();
+
+  generate_mesh(
+    domain, outfile, K::Sphere_3(CGAL::ORIGIN, bounding_sphere_radius2),
+    extra_feature_edges, lloyd, odt, perturb, exude,
+    max_edge_size_at_feature_edges_value, max_edge_size_at_feature_edges_field,
+    min_facet_angle,
+    max_radius_surface_delaunay_ball_value, max_radius_surface_delaunay_ball_field,
+    max_facet_distance_value, max_facet_distance_field,
+    max_circumradius_edge_ratio,
+    max_cell_circumradius_value, max_cell_circumradius_field,
+    exude_time_limit, exude_sliver_bound,
+    verbose, seed);
+}
+
+void
+generate_mesh(
+    const std::shared_ptr<pygalmesh::DomainBase> & domain,
+    const std::string & outfile,
+    const std::array<double, 6> bounding_cuboid,
+    const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges,
+    const bool lloyd,
+    const bool odt,
+    const bool perturb,
+    const bool exude,
+    //
+    const double max_edge_size_at_feature_edges_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_edge_size_at_feature_edges_field,
+    //
+    const double min_facet_angle,
+    //
+    const double max_radius_surface_delaunay_ball_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_radius_surface_delaunay_ball_field,
+    //
+    const double max_facet_distance_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_facet_distance_field,
+    //
+    const double max_circumradius_edge_ratio,
+    //
+    const double max_cell_circumradius_value,
+    const std::shared_ptr<pygalmesh::SizingFieldBase> & max_cell_circumradius_field,
+    //
+    const double exude_time_limit,
+    const double exude_sliver_bound,
+    //
+    const bool verbose,
+    const int seed
+    )
+{
+  // some wiggle room
+  const double eps = 0.01 * std::max({
+    std::abs(bounding_cuboid[3] - bounding_cuboid[0]),
+    std::abs(bounding_cuboid[4] - bounding_cuboid[1]),
+    std::abs(bounding_cuboid[5] - bounding_cuboid[2])
+  });
+
+  K::Iso_cuboid_3 cuboid(
+      bounding_cuboid[0] - eps,
+      bounding_cuboid[1] - eps,
+      bounding_cuboid[2] - eps,
+      bounding_cuboid[3] + eps,
+      bounding_cuboid[4] + eps,
+      bounding_cuboid[5] + eps
+      );
+
+  generate_mesh(
+    domain, outfile, cuboid, extra_feature_edges, lloyd, odt, perturb, exude,
+    max_edge_size_at_feature_edges_value, max_edge_size_at_feature_edges_field,
+    min_facet_angle,
+    max_radius_surface_delaunay_ball_value, max_radius_surface_delaunay_ball_field,
+    max_facet_distance_value, max_facet_distance_field,
+    max_circumradius_edge_ratio,
+    max_cell_circumradius_value, max_cell_circumradius_field,
+    exude_time_limit, exude_sliver_bound,
+    verbose, seed);
 }
 
 } // namespace pygalmesh
