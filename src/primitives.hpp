@@ -95,7 +95,7 @@ class Cuboid: public pygalmesh::DomainBase
     }
 
     virtual
-    std::vector<std::vector<std::array<double, 3>>>
+    Features
     get_features() const
     {
       std::vector<std::array<double, 3>> corners = {
@@ -213,7 +213,7 @@ class Cylinder: public pygalmesh::DomainBase
     }
 
     virtual
-    std::vector<std::vector<std::array<double, 3>>>
+    Features
     get_features() const
     {
       const double tau = 6.2831853071795864769;
@@ -278,7 +278,7 @@ class Cone: public pygalmesh::DomainBase
     }
 
     virtual
-    std::vector<std::vector<std::array<double, 3>>>
+    Features
     get_features() const
     {
       const double pi = 3.1415926535897932384;
@@ -380,7 +380,7 @@ class Tetrahedron: public pygalmesh::DomainBase
     }
 
     virtual
-    std::vector<std::vector<std::array<double, 3>>>
+    Features
     get_features() const
     {
       std::vector<std::array<double, 3>> pts = {

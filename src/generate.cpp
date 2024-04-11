@@ -30,10 +30,10 @@ typedef Mesh_criteria::Cell_criteria Cell_criteria;
 
 namespace {
 
-// translate vector<vector<array<double, 3>> to list<vector<Point_3>>
+// convert vector<vector<array<double, 3>> to list<vector<Point_3>>
 std::list<std::vector<K::Point_3>>
-translate_feature_edges(
-    const std::vector<std::vector<std::array<double, 3>>> & feature_edges
+convert_feature_edges(
+    const DomainBase::Features & feature_edges
     )
 {
   std::list<std::vector<K::Point_3>> polylines;
@@ -53,11 +53,13 @@ generate_mesh(
     const std::shared_ptr<pygalmesh::DomainBase> & domain,
     const std::string & outfile,
     const T& domain_bounds,
-    const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges,
+    const DomainBase::Features & extra_feature_edges,
     const bool lloyd,
     const bool odt,
     const bool perturb,
     const bool exude,
+    //
+    const double min_edge_size_at_feature_edges,
     //
     const double max_edge_size_at_feature_edges_value,
     const std::shared_ptr<pygalmesh::SizingFieldBase> & max_edge_size_at_feature_edges_field,
@@ -94,10 +96,10 @@ generate_mesh(
 
   // cgal_domain.detect_features();
 
-  const auto native_features = translate_feature_edges(domain->get_features());
+  const auto native_features = convert_feature_edges(domain->get_features());
   cgal_domain.add_features(native_features.begin(), native_features.end());
 
-  const auto polylines = translate_feature_edges(extra_feature_edges);
+  const auto polylines = convert_feature_edges(extra_feature_edges);
   cgal_domain.add_features(polylines.begin(), polylines.end());
 
   // perhaps there's a more elegant solution here
@@ -115,18 +117,18 @@ generate_mesh(
       max_facet_distance_field ?
       Facet_criteria(
         min_facet_angle,
-         [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
-           return max_radius_surface_delaunay_ball_field->eval({p.x(), p.y(), p.z()});
-         },
-         [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
-           return max_facet_distance_field->eval({p.x(), p.y(), p.z()});
-         }
+        [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
+          return max_radius_surface_delaunay_ball_field->eval({p.x(), p.y(), p.z()});
+        },
+        [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
+          return max_facet_distance_field->eval({p.x(), p.y(), p.z()});
+        }
       ) : Facet_criteria(
         min_facet_angle,
-         [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
-           return max_radius_surface_delaunay_ball_field->eval({p.x(), p.y(), p.z()});
-         },
-         max_facet_distance_value
+        [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
+          return max_radius_surface_delaunay_ball_field->eval({p.x(), p.y(), p.z()});
+        },
+        max_facet_distance_value
       )
     ) : (
       max_facet_distance_field ?
@@ -144,10 +146,15 @@ generate_mesh(
     );
 
   const auto edge_criteria = max_edge_size_at_feature_edges_field ?
-     Edge_criteria(
-         [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
-           return max_edge_size_at_feature_edges_field->eval({p.x(), p.y(), p.z()});
-          }) : Edge_criteria(max_edge_size_at_feature_edges_value);
+    Edge_criteria(
+      [&](K::Point_3 p, const int, const Mesh_domain::Index&) {
+        return max_edge_size_at_feature_edges_field->eval({p.x(), p.y(), p.z()});
+      },
+      min_edge_size_at_feature_edges
+    ) : Edge_criteria(
+      max_edge_size_at_feature_edges_value,
+      min_edge_size_at_feature_edges
+    );
 
   const auto cell_criteria = max_cell_circumradius_field ?
      Cell_criteria(
@@ -190,12 +197,14 @@ void
 generate_mesh(
     const std::shared_ptr<pygalmesh::DomainBase> & domain,
     const std::string & outfile,
-    const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges,
+    const DomainBase::Features & extra_feature_edges,
     const double bounding_sphere_radius,
     const bool lloyd,
     const bool odt,
     const bool perturb,
     const bool exude,
+    //
+    const double min_edge_size_at_feature_edges,
     //
     const double max_edge_size_at_feature_edges_value,
     const std::shared_ptr<pygalmesh::SizingFieldBase> & max_edge_size_at_feature_edges_field,
@@ -228,7 +237,7 @@ generate_mesh(
   generate_mesh(
     domain, outfile, K::Sphere_3(CGAL::ORIGIN, bounding_sphere_radius2),
     extra_feature_edges, lloyd, odt, perturb, exude,
-    max_edge_size_at_feature_edges_value, max_edge_size_at_feature_edges_field,
+    min_edge_size_at_feature_edges, max_edge_size_at_feature_edges_value, max_edge_size_at_feature_edges_field,
     min_facet_angle,
     max_radius_surface_delaunay_ball_value, max_radius_surface_delaunay_ball_field,
     max_facet_distance_value, max_facet_distance_field,
@@ -243,11 +252,13 @@ generate_mesh(
     const std::shared_ptr<pygalmesh::DomainBase> & domain,
     const std::string & outfile,
     const std::array<double, 6> bounding_cuboid,
-    const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges,
+    const DomainBase::Features & extra_feature_edges,
     const bool lloyd,
     const bool odt,
     const bool perturb,
     const bool exude,
+    //
+    const double min_edge_size_at_feature_edges,
     //
     const double max_edge_size_at_feature_edges_value,
     const std::shared_ptr<pygalmesh::SizingFieldBase> & max_edge_size_at_feature_edges_field,
@@ -290,7 +301,7 @@ generate_mesh(
 
   generate_mesh(
     domain, outfile, cuboid, extra_feature_edges, lloyd, odt, perturb, exude,
-    max_edge_size_at_feature_edges_value, max_edge_size_at_feature_edges_field,
+    min_edge_size_at_feature_edges, max_edge_size_at_feature_edges_value, max_edge_size_at_feature_edges_field,
     min_facet_angle,
     max_radius_surface_delaunay_ball_value, max_radius_surface_delaunay_ball_field,
     max_facet_distance_value, max_facet_distance_field,

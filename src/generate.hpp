@@ -14,14 +14,16 @@ namespace pygalmesh {
 void generate_mesh(
     const std::shared_ptr<pygalmesh::DomainBase> & domain,
     const std::string & outfile,
-    const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges = {},
+    const DomainBase::Features & extra_feature_edges = {},
     const double bounding_sphere_radius = 0.0,
     const bool lloyd = false,
     const bool odt = false,
     const bool perturb = true,
     const bool exude = true,
     //
-    const double max_edge_size_at_feature_edges_value = 0.0,  // std::numeric_limits<double>::max(),
+    const double min_edge_size_at_feature_edges = 0.0,
+    //
+    const double max_edge_size_at_feature_edges_value = std::numeric_limits<double>::max(),
     const std::shared_ptr<pygalmesh::SizingFieldBase> & max_edge_size_at_feature_edges_field = nullptr,
     //
     const double min_facet_angle = 0.0,
@@ -48,13 +50,15 @@ void generate_mesh(
     const std::shared_ptr<pygalmesh::DomainBase> & domain,
     const std::string & outfile,
     const std::array<double, 6> bounding_cuboid,
-    const std::vector<std::vector<std::array<double, 3>>> & extra_feature_edges = {},
+    const DomainBase::Features & extra_feature_edges = {},
     const bool lloyd = false,
     const bool odt = false,
     const bool perturb = true,
     const bool exude = true,
     //
-    const double max_edge_size_at_feature_edges_value = 0.0,  // std::numeric_limits<double>::max(),
+    const double min_edge_size_at_feature_edges = 0.0,
+    //
+    const double max_edge_size_at_feature_edges_value = std::numeric_limits<double>::max(),
     const std::shared_ptr<pygalmesh::SizingFieldBase> & max_edge_size_at_feature_edges_field = nullptr,
     //
     const double min_facet_angle = 0.0,

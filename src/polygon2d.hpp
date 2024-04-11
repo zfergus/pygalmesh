@@ -127,10 +127,10 @@ class Extrude: public pygalmesh::DomainBase {
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  DomainBase::Features
   get_features() const
   {
-    std::vector<std::vector<std::array<double, 3>>> features = {};
+    DomainBase::Features features = {};
 
     size_t n;
 
@@ -274,10 +274,10 @@ class ring_extrude: public pygalmesh::DomainBase {
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  DomainBase::Features
   get_features() const
   {
-    std::vector<std::vector<std::array<double, 3>>> features = {};
+    DomainBase::Features features = {};
 
     for (const auto & pt: poly_->points) {
       const double r = pt.x();

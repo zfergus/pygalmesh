@@ -12,6 +12,7 @@ namespace pygalmesh {
 class DomainBase
 {
   public:
+  using Features = std::vector<std::vector<std::array<double, 3>>>;
 
   virtual ~DomainBase() = default;
 
@@ -24,7 +25,7 @@ class DomainBase
   get_bounding_sphere_squared_radius() const = 0;
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
     return {};
@@ -46,13 +47,13 @@ class Translate: public pygalmesh::DomainBase
 
   virtual ~Translate() = default;
 
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   translate_features(
-      const std::vector<std::vector<std::array<double, 3>>> & features,
+      const Features & features,
       const Eigen::Vector3d & direction
       ) const
   {
-    std::vector<std::vector<std::array<double, 3>>> translated_features;
+    Features translated_features;
     for (const auto & feature: features) {
       std::vector<std::array<double, 3>> translated_feature;
       for (const auto & point: feature) {
@@ -90,7 +91,7 @@ class Translate: public pygalmesh::DomainBase
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
     return translated_features_;
@@ -99,7 +100,7 @@ class Translate: public pygalmesh::DomainBase
   private:
     const std::shared_ptr<const pygalmesh::DomainBase> domain_;
     const Eigen::Vector3d direction_;
-    const std::vector<std::vector<std::array<double, 3>>> translated_features_;
+    const Features translated_features_;
 };
 
 class Rotate: public pygalmesh::DomainBase
@@ -155,12 +156,12 @@ class Rotate: public pygalmesh::DomainBase
     return domain_->eval({p2[0], p2[1], p2[2]});
   }
 
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   rotate_features(
-      const std::vector<std::vector<std::array<double, 3>>> & features
+      const Features & features
       ) const
   {
-    std::vector<std::vector<std::array<double, 3>>> rotated_features;
+    Features rotated_features;
     for (const auto & feature: features) {
       std::vector<std::array<double, 3>> rotated_feature;
       for (const auto & point: feature) {
@@ -185,7 +186,7 @@ class Rotate: public pygalmesh::DomainBase
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
     return rotated_features_;
@@ -196,7 +197,7 @@ class Rotate: public pygalmesh::DomainBase
     const Eigen::Vector3d normalized_axis_;
     const double sinAngle_;
     const double cosAngle_;
-    const std::vector<std::vector<std::array<double, 3>>> rotated_features_;
+    const Features rotated_features_;
 };
 
 class Scale: public pygalmesh::DomainBase
@@ -229,12 +230,12 @@ class Scale: public pygalmesh::DomainBase
     return alpha_*alpha_ * domain_->get_bounding_sphere_squared_radius();
   }
 
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   scale_features(
-      const std::vector<std::vector<std::array<double, 3>>> & features
+      const Features & features
       ) const
   {
-    std::vector<std::vector<std::array<double, 3>>> scaled_features;
+    Features scaled_features;
     for (const auto & feature: features) {
       std::vector<std::array<double, 3>> scaled_feature;
       for (const auto & point: feature) {
@@ -250,7 +251,7 @@ class Scale: public pygalmesh::DomainBase
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
     return scaled_features_;
@@ -259,7 +260,7 @@ class Scale: public pygalmesh::DomainBase
   private:
     std::shared_ptr<const pygalmesh::DomainBase> domain_;
     const double alpha_;
-    const std::vector<std::vector<std::array<double, 3>>> scaled_features_;
+    const Features scaled_features_;
 };
 
 class Stretch: public pygalmesh::DomainBase
@@ -298,12 +299,12 @@ class Stretch: public pygalmesh::DomainBase
     return alpha_*alpha_ * domain_->get_bounding_sphere_squared_radius();
   }
 
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   stretch_features(
-      const std::vector<std::vector<std::array<double, 3>>> & features
+      const Features & features
       ) const
   {
-    std::vector<std::vector<std::array<double, 3>>> stretched_features;
+    Features stretched_features;
     for (const auto & feature: features) {
       std::vector<std::array<double, 3>> stretched_feature;
       for (const auto & point: feature) {
@@ -320,7 +321,7 @@ class Stretch: public pygalmesh::DomainBase
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
     return stretched_features_;
@@ -330,7 +331,7 @@ class Stretch: public pygalmesh::DomainBase
     std::shared_ptr<const pygalmesh::DomainBase> domain_;
     const Eigen::Vector3d normalized_direction_;
     const double alpha_;
-    const std::vector<std::vector<std::array<double, 3>>> stretched_features_;
+    const Features stretched_features_;
 };
 
 class Intersection: public pygalmesh::DomainBase
@@ -369,10 +370,10 @@ class Intersection: public pygalmesh::DomainBase
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
-    std::vector<std::vector<std::array<double, 3>>> features;
+    Features features;
     for (const auto & domain: domains_) {
       const auto f = domain->get_features();
       features.insert(std::end(features), std::begin(f), std::end(f));
@@ -420,10 +421,10 @@ class Union: public pygalmesh::DomainBase
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
-    std::vector<std::vector<std::array<double, 3>>> features;
+    Features features;
     for (const auto & domain: domains_) {
       const auto f = domain->get_features();
       features.insert(std::end(features), std::begin(f), std::end(f));
@@ -467,10 +468,10 @@ class Difference: public pygalmesh::DomainBase
   }
 
   virtual
-  std::vector<std::vector<std::array<double, 3>>>
+  Features
   get_features() const
   {
-    std::vector<std::vector<std::array<double, 3>>> features;
+    Features features;
 
     const auto f0 = domain0_->get_features();
     features.insert(std::end(features), std::begin(f0), std::end(f0));

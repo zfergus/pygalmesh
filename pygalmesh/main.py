@@ -38,7 +38,8 @@ def generate_mesh(
     odt: bool = False,
     perturb: bool = True,
     exude: bool = True,
-    max_edge_size_at_feature_edges: float = 0.0,
+    min_edge_size_at_feature_edges: float = 0.0,
+    max_edge_size_at_feature_edges: float = np.finfo(float).max,
     min_facet_angle: float = 0.0,
     max_radius_surface_delaunay_ball: float | Callable[..., float] = 0.0,
     max_facet_distance: float = 0.0,
@@ -77,8 +78,8 @@ def generate_mesh(
     os.close(fh)
 
     def _select(obj):
-        if isinstance(obj, float):
-            return obj, None
+        if isinstance(obj, float) or isinstance(obj, int):
+            return float(obj), None
         assert callable(obj)
         return -1.0, Wrapper(obj)
 
@@ -113,6 +114,7 @@ def generate_mesh(
         odt=odt,
         perturb=perturb,
         exude=exude,
+        min_edge_size_at_feature_edges=min_edge_size_at_feature_edges,
         max_edge_size_at_feature_edges_value=max_edge_size_at_feature_edges_value,
         max_edge_size_at_feature_edges_field=max_edge_size_at_feature_edges_field,
         min_facet_angle=min_facet_angle,

@@ -26,23 +26,18 @@ public:
 
     double
     eval(const std::array<double, 3> & x) const override {
-      PYBIND11_OVERLOAD_PURE(double, DomainBase, eval, x);
+      PYBIND11_OVERRIDE_PURE(double, DomainBase, eval, x);
     }
 
     double
     get_bounding_sphere_squared_radius() const override {
-      PYBIND11_OVERLOAD_PURE(double, DomainBase, get_bounding_sphere_squared_radius);
+      PYBIND11_OVERRIDE_PURE(double, DomainBase, get_bounding_sphere_squared_radius);
     }
 
-    // std::vector<std::vector<std::array<double, 3>>>
-    // get_features() const override {
-    //   PYBIND11_OVERLOAD(
-    //       std::vector<std::vector<std::array<double, 3>>>,
-    //       DomainBase,
-    //       get_features,
-    //       0.0
-    //       );
-    // }
+    Features
+    get_features() const override {
+      PYBIND11_OVERRIDE(Features, DomainBase, get_features);
+    }
 };
 
 
@@ -53,7 +48,7 @@ public:
 
     double
     eval(const std::array<double, 3> & x) const override {
-      PYBIND11_OVERLOAD_PURE(double, SizingFieldBase, eval, x);
+      PYBIND11_OVERRIDE_PURE(double, SizingFieldBase, eval, x);
     }
 };
 
@@ -271,12 +266,13 @@ PYBIND11_MODULE(_pygalmesh, m) {
         py::overload_cast<
             const std::shared_ptr<pygalmesh::DomainBase>&,
             const std::string&,
-            const std::vector<std::vector<std::array<double, 3>>>&,
+            const DomainBase::Features&,
             const double,
             const bool,
             const bool,
             const bool,
             const bool,
+            const double,
             const double,
             const std::shared_ptr<pygalmesh::SizingFieldBase> &,
             const double,
@@ -295,13 +291,14 @@ PYBIND11_MODULE(_pygalmesh, m) {
         ),
         py::arg("domain"),
         py::arg("outfile"),
-        py::arg("extra_feature_edges") = std::vector<std::vector<std::array<double, 3>>>(),
+        py::arg("extra_feature_edges") = DomainBase::Features(),
         py::arg("bounding_sphere_radius") = 0.0,
         py::arg("lloyd") = false,
         py::arg("odt") = false,
         py::arg("perturb") = true,
         py::arg("exude") = true,
-        py::arg("max_edge_size_at_feature_edges_value") = 0.0,
+        py::arg("min_edge_size_at_feature_edges") = 0.0,
+        py::arg("max_edge_size_at_feature_edges_value") = std::numeric_limits<double>::max(),
         py::arg("max_edge_size_at_feature_edges_field") = nullptr,
         py::arg("min_facet_angle") = 0.0,
         py::arg("max_radius_surface_delaunay_ball_value") = 0.0,
@@ -322,11 +319,12 @@ PYBIND11_MODULE(_pygalmesh, m) {
             const std::shared_ptr<pygalmesh::DomainBase>&,
             const std::string&,
             const std::array<double, 6>,
-            const std::vector<std::vector<std::array<double, 3>>>&,
+            const DomainBase::Features&,
             const bool,
             const bool,
             const bool,
             const bool,
+            const double,
             const double,
             const std::shared_ptr<pygalmesh::SizingFieldBase> &,
             const double,
@@ -346,12 +344,13 @@ PYBIND11_MODULE(_pygalmesh, m) {
         py::arg("domain"),
         py::arg("outfile"),
         py::arg("bounding_cuboid"),
-        py::arg("extra_feature_edges") = std::vector<std::vector<std::array<double, 3>>>(),
+        py::arg("extra_feature_edges") = DomainBase::Features(),
         py::arg("lloyd") = false,
         py::arg("odt") = false,
         py::arg("perturb") = true,
         py::arg("exude") = true,
-        py::arg("max_edge_size_at_feature_edges_value") = 0.0,
+        py::arg("min_edge_size_at_feature_edges") = 0.0,
+        py::arg("max_edge_size_at_feature_edges_value") = std::numeric_limits<double>::max(),
         py::arg("max_edge_size_at_feature_edges_field") = nullptr,
         py::arg("min_facet_angle") = 0.0,
         py::arg("max_radius_surface_delaunay_ball_value") = 0.0,
